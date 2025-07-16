@@ -120,47 +120,62 @@ public class VentaDao {
     Connection conn = cn.getConnection();
     conn.setAutoCommit(false);
     try {
-        // 1) Traer lotes (productos.id) con stock > 0, ordenados por fecha de compra
-        String sqlSelect = "SELECT id, stock, precio_compra FROM productos WHERE codigo = ? AND stock > 0  ORDER BY fecha_compra ASC";
-        PreparedStatement psSel = conn.prepareStatement(sqlSelect);
+        String sqlSelect = "SELECT id, stock, precio_compra, lote FROM productos WHERE codigo = ? AND stock > 0 ORDER BY fecha_compra ASC";
+        PreparedStatement psSel = conn.prepareStatement(sqlSelect, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         psSel.setString(1, codigoProducto);
         ResultSet rs = psSel.executeQuery();
-        
-        rs.beforeFirst();               // retrocede al inicio en caso de TYPE_SCROLL_INSENSITIVE
-        int lotesEncontrados = 0;
-        while (rs.next()) lotesEncontrados++;
-        System.out.println(">>> Lotes encontrados en FIFO: " + lotesEncontrados);
-        // Vuelve al principio para el bucle real
-        rs.beforeFirst();
 
+        rs.beforeFirst();
         int restante = cantidadAVender;
         while (rs.next() && restante > 0) {
-            int loteId           = rs.getInt("id");
-            int stockLote        = rs.getInt("stock");
-            BigDecimal precioCompra = rs.getBigDecimal("precio_compra");
+            int idLote         = rs.getInt("id");
+            int stockDisponible= rs.getInt("stock");
+            BigDecimal precio  = rs.getBigDecimal("precio_compra");
+            int lote           = rs.getInt("lote");
+            int deducir        = Math.min(restante, stockDisponible);
+            int nuevoStock = stockDisponible - deducir;
+BigDecimal subtotal = precio.multiply(BigDecimal.valueOf(deducir));
+BigDecimal nuevoSubtotal = precio.multiply(BigDecimal.valueOf(nuevoStock));
 
-            int deducir = Math.min(stockLote, restante);
-
-            // 2) Inserto en detalle apuntando al lote concreto
+            // 1. Insertar en tabla detalle
             String sqlDet = "INSERT INTO detalle (id_pro, cantidad, precio, id_venta) VALUES (?,?,?,?)";
-            PreparedStatement psDet = conn.prepareStatement(sqlDet);
-            psDet.setInt      (1, loteId);
-            psDet.setInt      (2, deducir);
-            psDet.setBigDecimal(3, precioCompra);
-            psDet.setInt      (4, ventaId);
-            psDet.executeUpdate();
-            psDet.close();
+            try (PreparedStatement psDet = conn.prepareStatement(sqlDet)) {
+                psDet.setInt(1, idLote);
+                psDet.setInt(2, deducir);
+                psDet.setBigDecimal(3, precio);
+                psDet.setInt(4, ventaId);
+                psDet.executeUpdate();
+            }
 
-            // 3) Actualizo stock del lote
+            // 2. Actualizar stock
             String sqlUpd = "UPDATE productos SET stock = stock - ? WHERE id = ?";
-            PreparedStatement psUpd = conn.prepareStatement(sqlUpd);
-            psUpd.setInt(1, deducir);
-            psUpd.setInt(2, loteId);
-            psUpd.executeUpdate();
-            psUpd.close();
+            try (PreparedStatement psUpd = conn.prepareStatement(sqlUpd)) {
+                psUpd.setInt(1, deducir);
+                psUpd.setInt(2, idLote);
+                psUpd.executeUpdate();
+            }
+
+            // 3. Insertar en tabla kardex (SALIDA)
+            String sqlKardex = "INSERT INTO kardex (fecha, tipo, codigo_producto, lote, detalle, " +
+                   "s_cantidad, s_cu, s_ct, d_cantidad, d_cu, d_ct) VALUES (?,?,?,?,?,?,?,?,?,?,?)";
+try (PreparedStatement psKardex = conn.prepareStatement(sqlKardex)) {
+    psKardex.setDate(1, new java.sql.Date(fechaVenta.getTime()));
+    psKardex.setString(2, "SALIDA");
+    psKardex.setString(3, codigoProducto);
+    psKardex.setInt(4, (lote > 0) ? lote : 0);
+    psKardex.setString(5, "Venta - Boleta " + numeroBoleta);
+    psKardex.setInt(6, deducir);
+    psKardex.setBigDecimal(7, precio);
+    psKardex.setBigDecimal(8, subtotal);
+    psKardex.setInt(9, nuevoStock); // stock actual del lote tras la salida
+    psKardex.setBigDecimal(10, precio);
+    psKardex.setBigDecimal(11, nuevoSubtotal);
+    psKardex.executeUpdate();
+            }
 
             restante -= deducir;
         }
+
         rs.close();
         psSel.close();
 
