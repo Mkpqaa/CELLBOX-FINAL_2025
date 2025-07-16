@@ -37,6 +37,7 @@ import com.itextpdf.text.pdf.PdfPageEventHelper;
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.ColumnText;
 import com.itextpdf.text.pdf.PdfGState;
+import java.math.BigDecimal;
 
 
 
@@ -64,6 +65,22 @@ public class ProductosDao {
             ps.setString(11, pro.getFecha_compra());
             ps.setString(12, pro.getNumero_factura());
             ps.execute();
+            String sqlKardex = "INSERT INTO kardex (fecha, tipo, codigo_producto, lote, proveedor_id, detalle, " +
+                   "e_cantidad, e_cu, e_ct, d_cantidad, d_cu, d_ct) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
+PreparedStatement psKardex = con.prepareStatement(sqlKardex);
+psKardex.setDate(1, java.sql.Date.valueOf(pro.getFecha_compra()));
+psKardex.setString(2, "ENTRADA");
+psKardex.setString(3, pro.getCodigo());
+psKardex.setInt(4, pro.getLote());
+psKardex.setInt(5, pro.getProveedor());
+psKardex.setString(6, "Compra - Factura " + pro.getNumero_factura());
+psKardex.setInt(7, pro.getStock());
+psKardex.setBigDecimal(8, BigDecimal.valueOf(pro.getPrecio()));
+psKardex.setBigDecimal(9, BigDecimal.valueOf(pro.getStock() * pro.getPrecio()));
+psKardex.setInt(10, pro.getStock()); // saldo inicial = cantidad entrada
+psKardex.setBigDecimal(11, BigDecimal.valueOf(pro.getPrecio()));
+psKardex.setBigDecimal(12, BigDecimal.valueOf(pro.getStock() * pro.getPrecio()));
+psKardex.executeUpdate();
             return true;
         } catch (SQLException e) {
             System.out.println(e.toString());
