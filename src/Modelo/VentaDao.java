@@ -119,6 +119,9 @@ public class VentaDao {
     public void registrarSalidaFIFO(String codigoProducto, int ventaId, Date fechaVenta, String numeroBoleta, int cantidadAVender) throws SQLException {
     Connection conn = cn.getConnection();
     conn.setAutoCommit(false);
+    if (fechaVenta == null) {
+    throw new SQLException("La fecha de venta no puede ser nula.");
+}
     try {
         String sqlSelect = "SELECT id, stock, precio_compra, lote FROM productos WHERE codigo = ? AND stock > 0 ORDER BY fecha_compra ASC";
         PreparedStatement psSel = conn.prepareStatement(sqlSelect, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
