@@ -3,7 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JDialog.java to edit this template
  */
 package Vista;
-//hola
+
 import Modelo.Conexion;
 import Modelo.Productos;
 import Modelo.ProductosDao;
