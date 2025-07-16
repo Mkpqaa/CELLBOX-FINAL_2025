@@ -68,25 +68,36 @@ public class ProductosDao {
             String sqlKardex = "INSERT INTO kardex (fecha, tipo, codigo_producto, lote, proveedor_id, detalle, " +
                    "e_cantidad, e_cu, e_ct, d_cantidad, d_cu, d_ct) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
 PreparedStatement psKardex = con.prepareStatement(sqlKardex);
-psKardex.setDate(1, java.sql.Date.valueOf(pro.getFecha_compra()));
-psKardex.setString(2, "ENTRADA");
-psKardex.setString(3, pro.getCodigo());
-psKardex.setInt(4, pro.getLote());
-psKardex.setInt(5, pro.getProveedor());
-psKardex.setString(6, "Compra - Factura " + pro.getNumero_factura());
-psKardex.setInt(7, pro.getStock());
-psKardex.setBigDecimal(8, BigDecimal.valueOf(pro.getPrecio()));
-psKardex.setBigDecimal(9, BigDecimal.valueOf(pro.getStock() * pro.getPrecio()));
-psKardex.setInt(10, pro.getStock()); // saldo inicial = cantidad entrada
-psKardex.setBigDecimal(11, BigDecimal.valueOf(pro.getPrecio()));
-psKardex.setBigDecimal(12, BigDecimal.valueOf(pro.getStock() * pro.getPrecio()));
-psKardex.executeUpdate();
-            return true;
-        } catch (SQLException e) {
-            System.out.println(e.toString());
+ java.util.Date utilDate;
+        try {
+            utilDate = new SimpleDateFormat("yyyy-MM-dd").parse(pro.getFecha_compra());
+        } catch (Exception pe) {
+            System.out.println("⚠️ Error al convertir la fecha: " + pro.getFecha_compra());
             return false;
         }
+        java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
+
+        psKardex.setDate(1, sqlDate);
+        psKardex.setString(2, "ENTRADA");
+        psKardex.setString(3, pro.getCodigo());
+        psKardex.setInt(4, pro.getLote());
+        psKardex.setInt(5, pro.getProveedor());
+        psKardex.setString(6, "Compra - Factura " + pro.getNumero_factura());
+        psKardex.setInt(7, pro.getStock());
+        psKardex.setBigDecimal(8, BigDecimal.valueOf(pro.getPrecio()));
+        psKardex.setBigDecimal(9, BigDecimal.valueOf(pro.getStock() * pro.getPrecio()));
+        psKardex.setInt(10, pro.getStock()); // saldo inicial = cantidad entrada
+        psKardex.setBigDecimal(11, BigDecimal.valueOf(pro.getPrecio()));
+        psKardex.setBigDecimal(12, BigDecimal.valueOf(pro.getStock() * pro.getPrecio()));
+        psKardex.executeUpdate();
+
+        return true;
+    } catch (SQLException e) {
+        System.out.println("❌ Error SQL en RegistrarProductos: " + e.getMessage());
+        e.printStackTrace();
+        return false;
     }
+}
     
     public List ListarProductos(){
        List<Productos> Listapro = new ArrayList();
