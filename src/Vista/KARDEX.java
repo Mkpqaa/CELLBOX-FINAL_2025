@@ -4,6 +4,7 @@
  */
 package Vista;
 
+import Modelo.Conexion;
 import Modelo.Productos;
 import Modelo.ProductosDao;
 import java.math.BigDecimal;
@@ -20,7 +21,21 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.table.DefaultTableModel;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Date;
+import javax.swing.table.DefaultTableModel;
+import java.util.*;
+import javax.swing.table.*;
+import javax.swing.plaf.basic.BasicTableHeaderUI;
+import javax.swing.plaf.TableHeaderUI;
+import java.awt.*;
 
 /**
  *
@@ -34,8 +49,21 @@ public class KARDEX extends javax.swing.JDialog {
     public KARDEX(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
-    }
-
+    
+String[] cols = {
+            "Fecha",
+            "E-Cant", "E-C.U.", "E-C.T.",
+            "S-Cant", "S-C.U.", "S-C.T.",
+            "D-Cant", "D-C.U.", "D-C.T."
+        };
+        DefaultTableModel modelo = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        TablaKardex.setModel(modelo);
+}
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -191,75 +219,47 @@ public class KARDEX extends javax.swing.JDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void cargarKardex(String codigoProducto) throws SQLException {
-     DefaultTableModel m = (DefaultTableModel) TablaKardex.getModel();
+    DefaultTableModel m = (DefaultTableModel) TablaKardex.getModel();
     m.setRowCount(0);
 
-     String sql =
-      // INGRESOS
-      "SELECT fecha_compra    AS fecha, " +
-      "       numero_factura  AS documento, " +
-      "       'INGRESO'       AS tipo, " +
-      "       stock           AS cantidad, " +
-      "       precio_compra   AS precio, " +
-      "       lote            AS lote, " +
-      "       (stock * precio_compra) AS costo_total " +
-      "  FROM productos " +
-      " WHERE codigo = ? " +
+    String sql = "SELECT fecha, tipo_movimiento, documento, cantidad, precio_unitario, precio_total, lote FROM kardex WHERE codigo = ? ORDER BY fecha, id";
 
-      "UNION ALL " +
-
-      // SALIDAS
-      "SELECT v.fecha                AS fecha, " +
-      "       v.numero_comprobante   AS documento, " +
-      "       'SALIDA'               AS tipo, " +
-      "       d.cantidad             AS cantidad, " +
-      "       d.precio               AS precio, " +
-      "       p.lote                 AS lote, " +               // <-- p.lote, no d.lote
-      "       (d.cantidad * d.precio) AS costo_total " +
-      "  FROM detalle d " +
-      "  JOIN ventas v    ON d.id_venta = v.id " +
-      "  JOIN productos p ON d.id_pro   = p.id " +
-      " WHERE p.codigo = ? " +
-
-      "ORDER BY fecha, tipo";
-
-    try (Connection c = new Modelo.Conexion().getConnection();
+    try (Connection c = new Conexion().getConnection();
          PreparedStatement ps = c.prepareStatement(sql)) {
 
         ps.setString(1, codigoProducto);
-        ps.setString(2, codigoProducto);
+        ResultSet rs = ps.executeQuery();
 
-        try (ResultSet rs = ps.executeQuery()) {
-            int saldo = 0;
-            while (rs.next()) {
-                Date        fecha        = rs.getDate("fecha");
-                String      doc          = rs.getString("documento");
-                String      tipoMov      = rs.getString("tipo");
-                int         cantidad     = rs.getInt("cantidad");
-                BigDecimal  precio       = rs.getBigDecimal("precio");
-                int         lote         = rs.getInt("lote");
-                BigDecimal  costoTotal   = rs.getBigDecimal("costo_total");
+        int saldo = 0;
+        while (rs.next()) {
+            Date fecha         = rs.getDate("fecha");
+            String tipo        = rs.getString("tipo_movimiento");
+            String doc         = rs.getString("documento");
+            int cantidad       = rs.getInt("cantidad");
+            BigDecimal precioU = rs.getBigDecimal("precio_unitario");
+            BigDecimal precioT = rs.getBigDecimal("precio_total");
+            int lote           = rs.getInt("lote");
 
-                int stockInicial = saldo;
-                if ("INGRESO".equals(tipoMov)) {
-                    saldo += cantidad;
-                } else {
-                    saldo -= cantidad;
-                }
-                int stockFinal = saldo;
-
-                m.addRow(new Object[]{
-                    fecha,
-                    doc,
-                    tipoMov,
-                    cantidad,
-                    precio,
-                    stockInicial,
-                    stockFinal,
-                    lote,
-                    costoTotal
-                });
+            int stockAntes = saldo;
+            if (tipo.equals("INGRESO") || tipo.equals("DEVOLUCION")) {
+                saldo += cantidad;
+            } else if (tipo.equals("SALIDA")) {
+                saldo -= cantidad;
             }
+            int stockDespues = saldo;
+
+            // Armar la fila para la tabla
+            m.addRow(new Object[]{
+                fecha,
+                doc,
+                tipo,
+                cantidad,
+                precioU,
+                stockAntes,
+                stockDespues,
+                lote,
+                precioT
+            });
         }
     }
 }
@@ -267,41 +267,53 @@ public class KARDEX extends javax.swing.JDialog {
     
     
     private void btnBuscarKardexActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarKardexActionPerformed
-         String codigo = txtCodigo.getText().trim();
-    if (codigo.isEmpty()) {
-        JOptionPane.showMessageDialog(this, "Ingrese un código de producto.",
+          // 1) Obtengo el código desde el JTextField
+    String codigoProducto = txtCodigo.getText().trim();
+    if (codigoProducto.isEmpty()) {
+        JOptionPane.showMessageDialog(this,
+            "Ingrese un código de producto.",
             "Atención", JOptionPane.WARNING_MESSAGE);
         return;
     }
 
-    try {
-        ProductosDao pdao = new ProductosDao();
-        Productos prod    = pdao.buscarPorCodigo(codigo);
-        if (prod == null) {
-            JOptionPane.showMessageDialog(this, "Producto no encontrado.",
-                "Error", JOptionPane.ERROR_MESSAGE);
-            return;
+    // 2) Limpio la tabla
+    DefaultTableModel m = (DefaultTableModel) TablaKardex.getModel();
+    m.setRowCount(0);
+
+    String sql =
+  "SELECT fecha, E_Cant, E_CU, E_CT, " +
+  "       S_Cant, S_CU, S_CT, "    +
+  "       D_Cant, D_CU, D_CT "    +  // ojo: espacio al final
+  "  FROM vw_kardex "            +  // espacio al final
+  " WHERE codigo_producto = ? "          +  // espacio al final
+  " ORDER BY fecha, E_Cant DESC, S_Cant DESC";
+
+try (Connection c = new Conexion().getConnection();
+     PreparedStatement ps = c.prepareStatement(sql)) {
+
+    ps.setString(1, txtCodigo.getText().trim());
+    try (ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+            m.addRow(new Object[]{
+                rs.getDate       ("fecha"),
+                rs.getInt        ("E_Cant"),
+                rs.getBigDecimal("E_CU"),
+                rs.getBigDecimal("E_CT"),
+                rs.getInt        ("S_Cant"),
+                rs.getBigDecimal("S_CU"),
+                rs.getBigDecimal("S_CT"),
+                rs.getInt        ("D_Cant"),
+                rs.getBigDecimal("D_CU"),
+                rs.getBigDecimal("D_CT")
+            });
         }
-
-        // Mostrar stock total sumando todos los lotes
-        int stockTotal = pdao.obtenerStockTotal(codigo);
-        lblStockValor.setText(String.valueOf(stockTotal));
-
-        lblProveedorValor.setText(prod.getProveedorPro());
-        int lotes = pdao.contarLotes(codigo);
-        lblLotesValor.setText(String.valueOf(lotes));
-
-        // Cargar todos los movimientos de entrada y salida
-        cargarKardex(codigo);
-
-
-    } catch (SQLException ex) {
-        JOptionPane.showMessageDialog(this,
-            "Error cargando Kardex:\n" + ex.getMessage(),
-            "Kardex", JOptionPane.ERROR_MESSAGE);
     }
+} catch (SQLException ex) {
+    JOptionPane.showMessageDialog(this,
+        "Error cargando Kardex:\n" + ex.getMessage(),
+        "Kardex", JOptionPane.ERROR_MESSAGE);
     }//GEN-LAST:event_btnBuscarKardexActionPerformed
-
+    }
     /**
      * @param args the command line arguments
      */
