@@ -51,11 +51,11 @@ public class KARDEX extends javax.swing.JDialog {
         initComponents();
     
 String[] cols = {
-            "Fecha",
-            "E-Cant", "E-C.U.", "E-C.T.",
-            "S-Cant", "S-C.U.", "S-C.T.",
-            "D-Cant", "D-C.U.", "D-C.T."
-        };
+    "Fecha", "Documento",
+    "E-Cant", "E-C.U.", "E-C.T.",
+    "S-Cant", "S-C.U.", "S-C.T.",
+    "D-Cant", "D-C.U.", "D-C.T."
+};
         DefaultTableModel modelo = new DefaultTableModel(cols, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -281,12 +281,12 @@ String[] cols = {
     m.setRowCount(0);
 
     String sql =
-  "SELECT fecha, E_Cant, E_CU, E_CT, " +
-  "       S_Cant, S_CU, S_CT, "    +
-  "       D_Cant, D_CU, D_CT "    +  // ojo: espacio al final
-  "  FROM vw_kardex "            +  // espacio al final
-  " WHERE codigo_producto = ? "          +  // espacio al final
-  " ORDER BY fecha, E_Cant DESC, S_Cant DESC";
+  "SELECT fecha, detalle, E_Cant, E_CU, E_CT, " +
+      "       S_Cant, S_CU, S_CT, " +
+      "       D_Cant, D_CU, D_CT " +
+      "  FROM vw_kardex " +
+      " WHERE codigo_producto = ? " +
+      " ORDER BY fecha, E_Cant DESC, S_Cant DESC";
 
 try (Connection c = new Conexion().getConnection();
      PreparedStatement ps = c.prepareStatement(sql)) {
@@ -295,23 +295,45 @@ try (Connection c = new Conexion().getConnection();
     try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
             m.addRow(new Object[]{
-                rs.getDate       ("fecha"),
-                rs.getInt        ("E_Cant"),
-                rs.getBigDecimal("E_CU"),
-                rs.getBigDecimal("E_CT"),
-                rs.getInt        ("S_Cant"),
-                rs.getBigDecimal("S_CU"),
-                rs.getBigDecimal("S_CT"),
-                rs.getInt        ("D_Cant"),
-                rs.getBigDecimal("D_CU"),
-                rs.getBigDecimal("D_CT")
+                 rs.getDate       ("fecha"),
+    rs.getString     ("detalle"),  // ← este es el "documento"
+    rs.getInt        ("E_Cant"),
+    rs.getBigDecimal("E_CU"),
+    rs.getBigDecimal("E_CT"),
+    rs.getInt        ("S_Cant"),
+    rs.getBigDecimal("S_CU"),
+    rs.getBigDecimal("S_CT"),
+    rs.getInt        ("D_Cant"),
+    rs.getBigDecimal("D_CU"),
+    rs.getBigDecimal("D_CT")
             });
         }
     }
+    String resumenSQL ="SELECT MAX(p.stock) AS stock, " +
+    "       pr.nombre AS proveedor_nombre, " +  // ← nombre correcto del proveedor
+    "       COUNT(DISTINCT p.lote) AS total_lotes " +
+    "  FROM productos p " +
+    "  JOIN proveedor pr ON p.proveedor = pr.id " +
+    " WHERE p.codigo = ?";
+
+try (PreparedStatement psResumen = c.prepareStatement(resumenSQL)) {
+    psResumen.setString(1, codigoProducto);
+    try (ResultSet rsResumen = psResumen.executeQuery()) {
+        if (rsResumen.next()) {
+    lblStockValor.setText(String.valueOf(rsResumen.getInt("stock")));
+    lblProveedorValor.setText(rsResumen.getString("proveedor_nombre")); 
+    lblLotesValor.setText(String.valueOf(rsResumen.getInt("total_lotes"))); // <- HISTÓRICO
+} else {
+    lblStockValor.setText("0");
+    lblProveedorValor.setText("No encontrado");
+    lblLotesValor.setText("0");
+}
+    }
+}
 } catch (SQLException ex) {
     JOptionPane.showMessageDialog(this,
         "Error cargando Kardex:\n" + ex.getMessage(),
-        "Kardex", JOptionPane.ERROR_MESSAGE);
+        "Kardex",JOptionPane.ERROR_MESSAGE);
     }//GEN-LAST:event_btnBuscarKardexActionPerformed
     }
     /**
