@@ -36,6 +36,11 @@ import javax.swing.table.*;
 import javax.swing.plaf.basic.BasicTableHeaderUI;
 import javax.swing.plaf.TableHeaderUI;
 import java.awt.*;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import javax.swing.JFileChooser;
+import java.io.File;
+import java.io.FileOutputStream;
 
 /**
  *
@@ -86,6 +91,12 @@ String[] cols = {
         lblStockValor = new javax.swing.JLabel();
         lblLotesValor = new javax.swing.JLabel();
         lblProveedorValor = new javax.swing.JLabel();
+        dateHasta = new com.toedter.calendar.JDateChooser();
+        dateDesde = new com.toedter.calendar.JDateChooser();
+        jLabel6 = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
+        jLabel88 = new javax.swing.JLabel();
+        btnExcelPro2 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setBackground(new java.awt.Color(255, 255, 255));
@@ -134,64 +145,112 @@ String[] cols = {
 
         txtCodigo.setColumns(10);
 
+        jLabel6.setFont(new java.awt.Font("DialogInput", 3, 24)); // NOI18N
+        jLabel6.setText("SALIDAS");
+
+        jLabel7.setFont(new java.awt.Font("Dubai", 3, 24)); // NOI18N
+        jLabel7.setText("SALDO");
+
+        jLabel88.setFont(new java.awt.Font("Dialog", 3, 24)); // NOI18N
+        jLabel88.setText("ENTRADAS");
+
+        btnExcelPro2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Img/logo.png"))); // NOI18N
+        btnExcelPro2.setToolTipText("");
+        btnExcelPro2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnExcelPro2ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout PrincipalLayout = new javax.swing.GroupLayout(Principal);
         Principal.setLayout(PrincipalLayout);
         PrincipalLayout.setHorizontalGroup(
             PrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(PrincipalLayout.createSequentialGroup()
-                .addGroup(PrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, PrincipalLayout.createSequentialGroup()
+                .addGroup(PrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(PrincipalLayout.createSequentialGroup()
-                        .addGap(406, 406, 406)
-                        .addComponent(jLabel1))
-                    .addGroup(PrincipalLayout.createSequentialGroup()
-                        .addGap(15, 15, 15)
                         .addGroup(PrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(PrincipalLayout.createSequentialGroup()
-                                .addComponent(jLabel3)
-                                .addGap(18, 18, 18)
-                                .addComponent(lblStockValor, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(92, 92, 92)
-                                .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addComponent(lblLotesValor, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(406, 406, 406)
+                                .addComponent(jLabel1))
                             .addGroup(PrincipalLayout.createSequentialGroup()
-                                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 159, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(txtCodigo, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(PrincipalLayout.createSequentialGroup()
-                                .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(4, 4, 4)
-                                .addComponent(lblProveedorValor, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(PrincipalLayout.createSequentialGroup()
-                                .addGap(402, 402, 402)
-                                .addComponent(btnBuscarKardex, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addGap(15, 15, 15)
+                                .addGroup(PrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(PrincipalLayout.createSequentialGroup()
+                                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 159, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(txtCodigo, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(PrincipalLayout.createSequentialGroup()
+                                        .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(4, 4, 4)
+                                        .addComponent(lblProveedorValor, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(PrincipalLayout.createSequentialGroup()
+                                        .addGroup(PrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addGroup(PrincipalLayout.createSequentialGroup()
+                                                .addGap(402, 402, 402)
+                                                .addComponent(btnBuscarKardex, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                            .addGroup(PrincipalLayout.createSequentialGroup()
+                                                .addComponent(jLabel3)
+                                                .addGap(18, 18, 18)
+                                                .addComponent(lblStockValor, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGap(92, 92, 92)
+                                                .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGap(18, 18, 18)
+                                                .addComponent(lblLotesValor, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(dateDesde, javax.swing.GroupLayout.PREFERRED_SIZE, 152, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(18, 18, 18)
+                                        .addComponent(dateHasta, javax.swing.GroupLayout.PREFERRED_SIZE, 152, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                        .addGap(107, 107, 107)
+                        .addComponent(btnExcelPro2))
+                    .addGroup(PrincipalLayout.createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabel88, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(159, 159, 159)
+                        .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 149, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(183, 183, 183)
+                        .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 108, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(188, 188, 188))
         );
         PrincipalLayout.setVerticalGroup(
             PrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(PrincipalLayout.createSequentialGroup()
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(2, 2, 2)
-                .addGroup(PrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(txtCodigo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(PrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                .addGroup(PrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(PrincipalLayout.createSequentialGroup()
-                        .addComponent(btnBuscarKardex)
-                        .addGap(0, 0, Short.MAX_VALUE))
+                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(2, 2, 2)
+                        .addGroup(PrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel2)
+                            .addComponent(txtCodigo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnBuscarKardex))
                     .addGroup(PrincipalLayout.createSequentialGroup()
                         .addGroup(PrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(lblStockValor, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(PrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(jLabel3)
-                                .addComponent(jLabel5)
-                                .addComponent(lblLotesValor, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(18, 18, 18)
+                            .addGroup(PrincipalLayout.createSequentialGroup()
+                                .addGap(75, 75, 75)
+                                .addGroup(PrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(PrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(lblStockValor, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGroup(PrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                            .addComponent(jLabel3)
+                                            .addComponent(jLabel5)
+                                            .addComponent(lblLotesValor, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                    .addComponent(dateHasta, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(dateDesde, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(12, 12, 12))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, PrincipalLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(btnExcelPro2)
+                                .addGap(4, 4, 4)))
                         .addGroup(PrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel4)
-                            .addComponent(lblProveedorValor, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addContainerGap(45, Short.MAX_VALUE))))
+                            .addComponent(lblProveedorValor, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 35, Short.MAX_VALUE)
+                .addGroup(PrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel6)
+                    .addComponent(jLabel7)
+                    .addComponent(jLabel88))
+                .addContainerGap())
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -212,7 +271,7 @@ String[] cols = {
                 .addComponent(Principal, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(a1, javax.swing.GroupLayout.PREFERRED_SIZE, 441, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(9, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -270,72 +329,153 @@ String[] cols = {
           // 1) Obtengo el código desde el JTextField
     String codigoProducto = txtCodigo.getText().trim();
     if (codigoProducto.isEmpty()) {
-        JOptionPane.showMessageDialog(this,
-            "Ingrese un código de producto.",
-            "Atención", JOptionPane.WARNING_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Ingrese un código de producto.", "Atención", JOptionPane.WARNING_MESSAGE);
         return;
     }
 
-    // 2) Limpio la tabla
+    Date fechaDesde = dateDesde.getDate();
+    Date fechaHasta = dateHasta.getDate();
+
+    if (fechaDesde == null || fechaHasta == null) {
+        JOptionPane.showMessageDialog(this, "Seleccione el rango de fechas.", "Atención", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+
     DefaultTableModel m = (DefaultTableModel) TablaKardex.getModel();
     m.setRowCount(0);
 
     String sql =
-  "SELECT fecha, detalle, E_Cant, E_CU, E_CT, " +
-      "       S_Cant, S_CU, S_CT, " +
-      "       D_Cant, D_CU, D_CT " +
-      "  FROM vw_kardex " +
-      " WHERE codigo_producto = ? " +
-      " ORDER BY fecha, E_Cant DESC, S_Cant DESC";
+        "SELECT fecha, detalle, E_Cant, E_CU, E_CT, " +
+        "       S_Cant, S_CU, S_CT, " +
+        "       D_Cant, D_CU, D_CT " +
+        "  FROM vw_kardex " +
+        " WHERE codigo_producto = ? AND fecha BETWEEN ? AND ? " +
+        " ORDER BY fecha, E_Cant DESC, S_Cant DESC";
 
-try (Connection c = new Conexion().getConnection();
-     PreparedStatement ps = c.prepareStatement(sql)) {
+    try (Connection c = new Conexion().getConnection();
+         PreparedStatement ps = c.prepareStatement(sql)) {
 
-    ps.setString(1, txtCodigo.getText().trim());
-    try (ResultSet rs = ps.executeQuery()) {
-        while (rs.next()) {
-            m.addRow(new Object[]{
-                 rs.getDate       ("fecha"),
-    rs.getString     ("detalle"),  // ← este es el "documento"
-    rs.getInt        ("E_Cant"),
-    rs.getBigDecimal("E_CU"),
-    rs.getBigDecimal("E_CT"),
-    rs.getInt        ("S_Cant"),
-    rs.getBigDecimal("S_CU"),
-    rs.getBigDecimal("S_CT"),
-    rs.getInt        ("D_Cant"),
-    rs.getBigDecimal("D_CU"),
-    rs.getBigDecimal("D_CT")
-            });
+        ps.setString(1, codigoProducto);
+        ps.setDate(2, new java.sql.Date(fechaDesde.getTime()));
+        ps.setDate(3, new java.sql.Date(fechaHasta.getTime()));
+
+        BigDecimal costoVentas = BigDecimal.ZERO;
+        BigDecimal inventarioFinal = BigDecimal.ZERO;
+
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                int e_cant = rs.getInt("E_Cant");
+                BigDecimal e_ct = rs.getBigDecimal("E_CT");
+
+                int s_cant = rs.getInt("S_Cant");
+                BigDecimal s_ct = rs.getBigDecimal("S_CT");
+
+                int d_cant = rs.getInt("D_Cant");
+                BigDecimal d_ct = rs.getBigDecimal("D_CT");
+
+                m.addRow(new Object[]{
+                    rs.getDate("fecha"),
+                    rs.getString("detalle"),
+                    e_cant,
+                    rs.getBigDecimal("E_CU"),
+                    e_ct,
+                    s_cant,
+                    rs.getBigDecimal("S_CU"),
+                    s_ct,
+                    d_cant,
+                    rs.getBigDecimal("D_CU"),
+                    d_ct
+                });
+
+                // Cálculo de costo de ventas
+                costoVentas = costoVentas.add(s_ct).add(d_ct);
+
+                // Cálculo inventario final = sumatorio de entradas - salidas
+                inventarioFinal = inventarioFinal.add(e_ct).subtract(s_ct);
+            }
         }
-    }
-    String resumenSQL ="SELECT MAX(p.stock) AS stock, " +
-    "       pr.nombre AS proveedor_nombre, " +  // ← nombre correcto del proveedor
-    "       COUNT(DISTINCT p.lote) AS total_lotes " +
-    "  FROM productos p " +
-    "  JOIN proveedor pr ON p.proveedor = pr.id " +
-    " WHERE p.codigo = ?";
 
-try (PreparedStatement psResumen = c.prepareStatement(resumenSQL)) {
-    psResumen.setString(1, codigoProducto);
-    try (ResultSet rsResumen = psResumen.executeQuery()) {
-        if (rsResumen.next()) {
-    lblStockValor.setText(String.valueOf(rsResumen.getInt("stock")));
-    lblProveedorValor.setText(rsResumen.getString("proveedor_nombre")); 
-    lblLotesValor.setText(String.valueOf(rsResumen.getInt("total_lotes"))); // <- HISTÓRICO
-} else {
-    lblStockValor.setText("0");
-    lblProveedorValor.setText("No encontrado");
-    lblLotesValor.setText("0");
-}
-    }
-}
-} catch (SQLException ex) {
-    JOptionPane.showMessageDialog(this,
-        "Error cargando Kardex:\n" + ex.getMessage(),
-        "Kardex",JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this,
+            "Costo de Ventas: S/ " + costoVentas + "\nInventario Final: S/ " + inventarioFinal,
+            "Resumen", JOptionPane.INFORMATION_MESSAGE);
+
+        // Consulta para mostrar stock actual, proveedor y cantidad de lotes
+        String resumenSQL =
+            "SELECT MAX(p.stock) AS stock, " +
+            "       pr.nombre AS proveedor_nombre, " +
+            "       COUNT(DISTINCT p.lote) AS total_lotes " +
+            "  FROM productos p " +
+            "  JOIN proveedor pr ON p.proveedor = pr.id " +
+            " WHERE p.codigo = ?";
+
+        try (PreparedStatement psResumen = c.prepareStatement(resumenSQL)) {
+            psResumen.setString(1, codigoProducto);
+            try (ResultSet rsResumen = psResumen.executeQuery()) {
+                if (rsResumen.next()) {
+                    lblStockValor.setText(String.valueOf(rsResumen.getInt("stock")));
+                    lblProveedorValor.setText(rsResumen.getString("proveedor_nombre"));
+                    lblLotesValor.setText(String.valueOf(rsResumen.getInt("total_lotes")));
+                } else {
+                    lblStockValor.setText("0");
+                    lblProveedorValor.setText("No encontrado");
+                    lblLotesValor.setText("0");
+                }
+            }
+        }
+
+    } catch (SQLException ex) {
+        JOptionPane.showMessageDialog(this,
+            "Error cargando Kardex:\n" + ex.getMessage(),
+            "Kardex", JOptionPane.ERROR_MESSAGE);
     }//GEN-LAST:event_btnBuscarKardexActionPerformed
     }
+    private void btnExcelPro2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExcelPro2ActionPerformed
+try {
+        Workbook wb = new XSSFWorkbook();
+        Sheet hoja = wb.createSheet("Kardex");
+
+        DefaultTableModel model = (DefaultTableModel) TablaKardex.getModel();
+
+        // Crear encabezados
+        Row header = hoja.createRow(0);
+        for (int i = 0; i < model.getColumnCount(); i++) {
+            Cell celda = header.createCell(i);
+            celda.setCellValue(model.getColumnName(i));
+        }
+
+        // Llenar los datos de la tabla
+        for (int i = 0; i < model.getRowCount(); i++) {
+            Row fila = hoja.createRow(i + 1);
+            for (int j = 0; j < model.getColumnCount(); j++) {
+                Object valor = model.getValueAt(i, j);
+                Cell celda = fila.createCell(j);
+                celda.setCellValue(valor != null ? valor.toString() : "");
+            }
+        }
+
+        // Guardar el archivo
+        JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Guardar archivo Excel");
+        int seleccion = fc.showSaveDialog(this);
+        if (seleccion == JFileChooser.APPROVE_OPTION) {
+            File archivo = fc.getSelectedFile();
+            if (!archivo.getName().endsWith(".xlsx")) {
+                archivo = new File(archivo.toString() + ".xlsx");
+            }
+
+            try (FileOutputStream out = new FileOutputStream(archivo)) {
+                wb.write(out);
+            }
+
+            wb.close();
+            JOptionPane.showMessageDialog(this, "Archivo exportado exitosamente.");
+        }
+
+    } catch (Exception ex) {
+        JOptionPane.showMessageDialog(this, "Error exportando a Excel: " + ex.getMessage());
+        ex.printStackTrace();
+    }
+    }//GEN-LAST:event_btnExcelPro2ActionPerformed
     /**
      * @param args the command line arguments
      */
@@ -383,11 +523,17 @@ try (PreparedStatement psResumen = c.prepareStatement(resumenSQL)) {
     private javax.swing.JTable TablaKardex;
     private javax.swing.JScrollPane a1;
     private javax.swing.JButton btnBuscarKardex;
+    private javax.swing.JButton btnExcelPro2;
+    private com.toedter.calendar.JDateChooser dateDesde;
+    private com.toedter.calendar.JDateChooser dateHasta;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel88;
     private javax.swing.JLabel lblLotesValor;
     private javax.swing.JLabel lblProveedorValor;
     private javax.swing.JLabel lblStockValor;
